@@ -54,7 +54,7 @@ SEE ALSO
 
 <p align="center">
 <!-- clock:start -->
-<sub>42% of my commits happen after 9pm or before 6am. Between 07:00 and 11:00: zero. Not one, ever. Last seen pushing to [Pirrot](https://github.com/masluny/Pirrot) on Oct 31 at 01:13.</sub>
+<sub>42% of my commits happen after 9pm or before 6am. Between 07:00 and 11:00: zero. Not one, ever. Last seen pushing to <a href="https://github.com/masluny/Pirrot">Pirrot</a> on Oct 31 at 01:13.</sub>
 <!-- clock:end -->
 </p>
 
