@@ -1,4 +1,4 @@
-"""Redraw assets/commit-clock.svg and the caption under it in README.md.
+"""Redraw assets/commit-clock.svg.
 
 Counts every commit authored by USER in their public, non-fork repos and bins
 it by local hour. Needs GITHUB_TOKEN (the Actions token is enough).
@@ -46,8 +46,7 @@ def collect():
             t = datetime.fromisoformat(c["commit"]["author"]["date"].replace("Z", "+00:00"))
             hours[t.astimezone(TZ).hour] += 1
             total += 1
-    last = max(repos, key=lambda r: r["pushed_at"])
-    return [hours[h] for h in range(24)], total, last
+    return [hours[h] for h in range(24)], total
 
 
 def dead_zone(counts):
@@ -107,28 +106,9 @@ def svg(counts, total):
     return "".join(p)
 
 
-def caption(counts, total, last):
-    night = sum(counts[21:]) + sum(counts[:6])
-    dz_start, dz_len = dead_zone(counts)
-    dz_end = (dz_start + dz_len) % 24
-    lines = [f"{round(100 * night / total)}% of my commits happen after 9pm or before 6am."]
-    if dz_len >= 2:
-        lines.append(f"Between {dz_start:02d}:00 and {dz_end:02d}:00: zero. Not one, ever.")
-    pushed = datetime.fromisoformat(last["pushed_at"].replace("Z", "+00:00")).astimezone(TZ)
-    lines.append(f'Last seen pushing to <a href="{last["html_url"]}">{last["name"]}</a> '
-                 f"on {pushed:%b %-d at %H:%M}.")
-    return "<sub>" + " ".join(lines) + "</sub>"
-
-
 def main():
-    counts, total, last = collect()
+    counts, total = collect()
     (ROOT / "assets" / "commit-clock.svg").write_text(svg(counts, total))
-    readme = ROOT / "README.md"
-    text = readme.read_text()
-    text = re.sub(r"<!-- clock:start -->.*?<!-- clock:end -->",
-                  lambda m: f"<!-- clock:start -->\n{caption(counts, total, last)}\n<!-- clock:end -->",
-                  text, flags=re.S)
-    readme.write_text(text)
     print(f"{total} commits, peak {counts.index(max(counts)):02d}:00, "
           f"updated {datetime.now(timezone.utc):%Y-%m-%d %H:%M}Z")
 

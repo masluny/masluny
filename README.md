@@ -1,34 +1,6 @@
 <p align="center">
   <img src="assets/parrot.svg" width="270" alt="a pixel macaw walking on a branch">
-  <br>
-  <sub>this is Pirrot. he walks while my models think. he walks a lot.</sub>
 </p>
-
-```
-KACPER(1)                      User Commands                      KACPER(1)
-
-NAME
-     kacper – turns "how hard can it be" into a repository
-
-SYNOPSIS
-     kacper [--from=poland] [--lives=barcelona] [--mornings=off] idea ...
-
-DESCRIPTION
-     Builds tools for AI agents, trains models and ships native apps.
-     Lives in Barcelona, a city full of wild parrots, which probably
-     explains the bird.
-
-OPTIONS
-     --sleep          not implemented
-     --scope-creep    on by default, can not be disabled
-
-BUGS
-     26 commits about app icons. 2 commits about tests.
-     Considers this ratio correct.
-
-SEE ALSO
-     kacperkotowski.pl, x.com/137Kacper, linkedin.com/in/kacper-kotowski
-```
 
 ### things i made instead of sleeping
 
@@ -51,37 +23,3 @@ SEE ALSO
 ### when i actually code
 
 <p align="center"><img src="assets/commit-clock.svg" alt="commits by hour of day"></p>
-
-<p align="center">
-<!-- clock:start -->
-<sub>42% of my commits happen after 9pm or before 6am. Between 07:00 and 11:00: zero. Not one, ever. Last seen pushing to <a href="https://github.com/masluny/Pirrot">Pirrot</a> on Oct 31 at 01:13.</sub>
-<!-- clock:end -->
-</p>
-
-<details>
-<summary><sub>🦜 how the bird is made</sub></summary>
-
-<br>
-
-This is the whole parrot. Twelve strings. `R` is red, `O` is the beak, `K` is the eye, `y` and `B` are the wing, `f` are the feet.
-
-```
-....RR......
-..RRRR......
-.RRWWROOO...
-.RRWKROOOO..
-.RRRRoOOO...
-.RRRRooO....
-..RyyRR.....
-.RyyyRR.....
-.RBBRR......
-.RBRR.......
-..RRR.......
-..f.f.......
-```
-
-In the terminal every two of these rows become one line of `▀` characters in 24-bit color. Here [a script](scripts/parrot.py) turns the same strings into the SVG at the top.
-
-</details>
-
-<sub>The chart is redrawn by a bot every night at 3am UTC, which makes him the only one on this account with a regular sleep schedule.</sub>

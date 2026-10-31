@@ -23,5 +23,5 @@ jobs:
         run: |
           git config user.name "pirrot-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/commit-clock.svg README.md
+          git add assets/commit-clock.svg
           git diff --cached --quiet || { git commit -m "redraw commit clock 🦜"; git push; }
