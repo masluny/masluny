@@ -70,59 +70,74 @@ def last_commit():
 
 # ---------------------------------------------------------------- drawing --
 
-W, H = 820, 322
-TOP = 78
-BOARD = (30, 92, 790, 268)                      # x0, y0, x1, y1
-CARD_GRAY = "#4a4d55"
-WHITE, SALMON = "#e9edf2", "#f2826f"
+CW, CH = 64, 96                                  # every card is the same size
+PAIR_GAP, GROUP_GAP, PAD, CY = 8, 44, 28, 32
+W = 2 * PAD + 4 * (2 * CW + PAIR_GAP) + 3 * GROUP_GAP
+H = CY + CH + 26
 FLIP_S = 0.32
+CYAN, PINK, VIOLET = "#22e6ff", "#ff2bd6", "#b18cff"
+CORE = {CYAN: "#dcfcff", PINK: "#ffe0f7"}       # near-white tube core, the glow carries the color
+FACE_TOP, FACE_BOTTOM = "#11131d", "#0b0c14"
 
-# (group label, cards[(x, y, w, h)], digit color, cycle length L, step seconds S, digit-of-step fns)
+# per group: neon color, then (cycle length L, step seconds S, digit-of-step fn) for its two cards
 GROUPS = [
-    ("DAYS", [(52, 112, 82, 128), (140, 112, 82, 128)], WHITE,
-     [(10, 864000, lambda k: k), (10, 86400, lambda k: k)]),
-    ("HOURS", [(254, 112, 62, 96), (322, 112, 62, 96)], SALMON,
-     [(24, 3600, lambda k: k // 10), (24, 3600, lambda k: k % 10)]),
-    ("MIN", [(436, 112, 62, 96), (504, 112, 62, 96)], SALMON,
-     [(6, 600, lambda k: k), (10, 60, lambda k: k)]),
-    ("SEC", [(598, 112, 82, 128), (686, 112, 82, 128)], WHITE,
-     [(6, 10, lambda k: k), (10, 1, lambda k: k)]),
+    (CYAN, [(10, 864000, lambda k: k), (10, 86400, lambda k: k)]),
+    (PINK, [(24, 3600, lambda k: k // 10), (24, 3600, lambda k: k % 10)]),
+    (PINK, [(6, 600, lambda k: k), (10, 60, lambda k: k)]),
+    (CYAN, [(6, 10, lambda k: k), (10, 1, lambda k: k)]),
 ]
 
 
-def esc(s):
-    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+def glow(fid, color, blur):
+    return (f'<filter id="{fid}" x="-60%" y="-60%" width="220%" height="220%">'
+            f'<feGaussianBlur in="SourceAlpha" stdDeviation="{blur}" result="b"/>'
+            f'<feFlood flood-color="{color}"/><feComposite in2="b" operator="in" result="g"/>'
+            f'<feGaussianBlur in="SourceAlpha" stdDeviation="{blur * 3}" result="b2"/>'
+            f'<feFlood flood-color="{color}" flood-opacity=".55"/><feComposite in2="b2" operator="in" result="g2"/>'
+            f'<feMerge><feMergeNode in="g2"/><feMergeNode in="g"/><feMergeNode in="g"/>'
+            f'<feMergeNode in="SourceGraphic"/></feMerge></filter>')
 
 
-def render(elapsed, repo):
+def render(elapsed):
     elapsed = max(0.0, elapsed)
-    css, defs, body = [], [], []
-    x0, y0, x1, y1 = BOARD
+    css, body = [], []
+    defs = [glow("gc", CYAN, 1.6), glow("gp", PINK, 1.6), glow("gv", VIOLET, 1.8),
+            f'<linearGradient id="edge" x1="0" x2="1"><stop offset="0" stop-color="{CYAN}"/>'
+            f'<stop offset=".5" stop-color="{VIOLET}"/><stop offset="1" stop-color="{PINK}"/></linearGradient>',
+            f'<linearGradient id="face" x1="0" y1="0" x2="0" y2="1"><stop offset=".5" stop-color="{FACE_TOP}"/>'
+            f'<stop offset=".5" stop-color="{FACE_BOTTOM}"/></linearGradient>']
 
-    body.append(f'<rect x="{x0}" y="{y0}" width="{x1 - x0}" height="{y1 - y0}" rx="6" fill="#1b1c1f"/>')
-    body.append(f'<rect x="{x0}" y="{y1 - 6}" width="{x1 - x0}" height="6" rx="3" fill="#121214"/>')
-    for cx in (x0 + 12, x1 - 12):
-        body.append(f'<circle cx="{cx}" cy="{y1 - 16}" r="3.2" fill="#e5484d"/>')
+    body.append(f'<rect width="{W}" height="{H}" rx="16" fill="#05060b"/>')
+    body.append(f'<rect class="tube" x="5" y="5" width="{W - 10}" height="{H - 10}" rx="12" fill="none" '
+                f'stroke="url(#edge)" stroke-width="1.6" filter="url(#gv)"/>')
 
     n = 0
-    for label, cards, color, specs in GROUPS:
-        for (cx, cy, cw, ch), (L, S, digit) in zip(cards, specs):
+    hinge = CY + CH / 2
+    size = round(CH * 0.62)
+    base = CY + CH / 2 + size * 0.36
+    for g, (color, specs) in enumerate(GROUPS):
+        gx = PAD + g * (2 * CW + PAIR_GAP + GROUP_GAP)
+        fid = "gc" if color == CYAN else "gp"
+        if g:
+            colon_x = gx - GROUP_GAP / 2
+            body.append(f'<g class="colon" fill="{VIOLET}" filter="url(#gv)">'
+                        f'<circle cx="{colon_x}" cy="{hinge - 15}" r="3.6"/>'
+                        f'<circle cx="{colon_x}" cy="{hinge + 15}" r="3.6"/></g>')
+        for i, (L, S, digit) in enumerate(specs):
             n += 1
+            cx = gx + i * (CW + PAIR_GAP)
             d = elapsed % (L * S)
             d_prev = (d - S) % (L * S)
-            size = round(ch * 0.62)
-            base = cy + ch / 2 + size * 0.36
             strip = "".join(
-                f'<text x="{cx + cw / 2}" y="{base + k * ch:.1f}">{digit(k)}</text>' for k in range(L)
+                f'<text x="{cx + CW / 2}" y="{base + k * CH:.1f}">{digit(k)}</text>' for k in range(L)
             )
-            hinge = cy + ch / 2
-            defs.append(f'<clipPath id="c{n}"><rect x="{cx}" y="{cy}" width="{cw}" height="{ch}" rx="7"/></clipPath>')
-            defs.append(f'<clipPath id="t{n}"><rect x="{cx}" y="{cy}" width="{cw}" height="{ch / 2}"/></clipPath>')
+            defs.append(f'<clipPath id="c{n}"><rect x="{cx}" y="{CY}" width="{CW}" height="{CH}" rx="8"/></clipPath>')
+            defs.append(f'<clipPath id="t{n}"><rect x="{cx}" y="{CY}" width="{CW}" height="{CH / 2}"/></clipPath>')
             css.append(
                 f"#s{n},#p{n}{{animation:k{n} {L * S}s steps({L}) infinite}}"
                 f"#s{n}{{animation-delay:-{d:.3f}s}}#p{n}{{animation-delay:-{d_prev:.3f}s}}"
-                f"@keyframes k{n}{{to{{transform:translateY(-{L * ch}px)}}}}"
-                f"#f{n}{{transform-origin:{cx + cw / 2}px {hinge}px;"
+                f"@keyframes k{n}{{to{{transform:translateY(-{L * CH}px)}}}}"
+                f"#f{n}{{transform-origin:{cx + CW / 2}px {hinge}px;"
                 f"animation:flip {S}s linear infinite;animation-delay:-{elapsed % S:.3f}s}}"
             )
             if S > FLIP_S:
@@ -130,40 +145,35 @@ def render(elapsed, repo):
                            f"@keyframes flip{n}{{0%{{transform:scaleY(1)}}"
                            f"{100 * FLIP_S / S:.4f}%,100%{{transform:scaleY(0)}}}}")
 
-            for hx in (cx + cw * 0.28, cx + cw * 0.72):
-                body.append(f'<circle cx="{hx:.1f}" cy="{cy - 4}" r="10" fill="none" stroke="#c9ccd1" stroke-width="3.2"/>')
-            body.append(f'<g fill="{color}" font-size="{size}">'
-                        f'<rect x="{cx}" y="{cy}" width="{cw}" height="{ch}" rx="7" fill="{CARD_GRAY}"/>'
-                        f'<g clip-path="url(#c{n})"><g id="s{n}">{strip}</g></g>'
-                        f'<g id="f{n}"><g clip-path="url(#t{n})">'
-                        f'<rect x="{cx}" y="{cy}" width="{cw}" height="{ch}" rx="7" fill="{CARD_GRAY}"/>'
-                        f'<g id="p{n}">{strip}</g>'
-                        f'<rect x="{cx}" y="{cy}" width="{cw}" height="{ch / 2}" fill="#000" opacity=".12"/>'
-                        f'</g></g>'
-                        f'<line x1="{cx}" y1="{hinge}" x2="{cx + cw}" y2="{hinge}" stroke="#2a2c31" stroke-width="1.5"/>')
-            for hx in (cx + cw * 0.28, cx + cw * 0.72):
-                body.append(f'<circle cx="{hx:.1f}" cy="{cy + 7}" r="3" fill="#1b1c1f"/>')
-                body.append(f'<path d="M{hx - 10:.1f} {cy - 4} A10 10 0 0 1 {hx + 10:.1f} {cy - 4}" fill="none" '
-                            f'stroke="#c9ccd1" stroke-width="3.2"/>')
-            body.append("</g>")
-        lx = (cards[0][0] + cards[-1][0] + cards[-1][2]) / 2
-        ly = max(c[1] + c[3] for c in cards) + 16
-        body.append(f'<text class="lbl" x="{lx}" y="{ly}">{label}</text>')
-
-    body.append(f'<text class="brand" x="410" y="246">SINCE LAST COMMIT</text>')
-    body.append(f'<g transform="rotate(-4 90 286)"><rect x="6" y="262" width="168" height="48" rx="5" fill="#2b2d33"/>'
-                f'<text class="tab" x="90" y="294">{esc(repo[:14])}</text></g>')
+            rings = [cx + CW * 0.28, cx + CW * 0.72]
+            for hx in rings:
+                body.append(f'<circle cx="{hx:.1f}" cy="{CY - 3}" r="8" fill="none" stroke="{color}" '
+                            f'stroke-width="1.6" opacity=".55"/>')
+            body.append(f'<rect x="{cx}" y="{CY}" width="{CW}" height="{CH}" rx="8" fill="url(#face)" '
+                        f'stroke="{color}" stroke-opacity=".7" stroke-width="1.2" filter="url(#{fid})"/>')
+            body.append(f'<g fill="{CORE[color]}" font-size="{size}" filter="url(#{fid})">'
+                        f'<g clip-path="url(#c{n})"><g id="s{n}">{strip}</g></g></g>')
+            body.append(f'<g id="f{n}"><g clip-path="url(#t{n})">'
+                        f'<rect x="{cx}" y="{CY}" width="{CW}" height="{CH}" rx="8" fill="{FACE_TOP}"/>'
+                        f'<g fill="{CORE[color]}" font-size="{size}" filter="url(#{fid})"><g id="p{n}">{strip}</g></g>'
+                        f'</g></g>')
+            body.append(f'<line x1="{cx}" y1="{hinge}" x2="{cx + CW}" y2="{hinge}" stroke="#05060b" stroke-width="2"/>')
+            for hx in rings:
+                body.append(f'<circle cx="{hx:.1f}" cy="{CY + 6}" r="2.4" fill="#05060b"/>')
+                body.append(f'<path d="M{hx - 8:.1f} {CY - 3} A8 8 0 0 1 {hx + 8:.1f} {CY - 3}" fill="none" '
+                            f'stroke="{color}" stroke-width="1.8" filter="url(#{fid})"/>')
 
     css.append(
         "@keyframes flip{0%{transform:scaleY(1)}32%,100%{transform:scaleY(0)}}"
+        f".colon{{animation:blink 1s steps(1) infinite;animation-delay:-{elapsed % 1:.3f}s}}"
+        "@keyframes blink{0%{opacity:1}50%{opacity:.25}}"
+        ".tube{animation:flicker 9s infinite}"
+        "@keyframes flicker{0%,91%,93.5%,96%,100%{opacity:1}92%,95%{opacity:.35}}"
         "text{text-anchor:middle;font-family:'Arial Rounded MT Bold','Helvetica Neue',Arial,sans-serif;font-weight:700}"
-        ".lbl{fill:#8f939b;font-size:12px;letter-spacing:3px;font-weight:600}"
-        ".brand{fill:#d9d5d2;font-size:22px;letter-spacing:4px}"
-        f".tab{{fill:{SALMON};font-size:22px}}"
         "@media (prefers-reduced-motion:reduce){*{animation-play-state:paused!important}}"
     )
     return (
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 {TOP} {W} {H - TOP}" width="{W}" height="{H - TOP}" '
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" '
         f'role="img" aria-label="Time since last commit">'
         f'<style>{"".join(css)}</style><defs>{"".join(defs)}</defs>{"".join(body)}</svg>'
     )
@@ -175,8 +185,8 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/health":
             body, ctype = b"ok", "text/plain"
         elif path in ("/", "/last-commit.svg"):
-            ts, repo = last_commit()
-            body, ctype = render(time.time() - ts, repo).encode(), "image/svg+xml; charset=utf-8"
+            ts, _ = last_commit()
+            body, ctype = render(time.time() - ts).encode(), "image/svg+xml; charset=utf-8"
         else:
             self.send_error(404)
             return

@@ -24,4 +24,4 @@
 
 <p align="center"><img src="assets/archipelago.svg" width="100%" alt="a year of contributions drawn as an archipelago"></p>
 
-<p align="center"><img src="https://lotisv1.pl/pirrot/last-commit.svg" width="560" alt="flip counter: time since my last commit"></p>
+<p align="center"><img src="https://lotisv1.pl/pirrot/last-commit.svg" width="620" alt="flip counter: time since my last commit"></p>
