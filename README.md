@@ -13,6 +13,7 @@
 
 **ML**
 - [ripple](https://github.com/masluny/ripple) predicts how one late LOT flight in Warsaw ruins everyone's connection (probabilistic GNN)
+- [food-cal](https://github.com/masluny/food-cal) webcam over my plate cuts dinner into pieces (YOLO segmentation) and reports the calories to a tiny ESP32 screen on the desk
 
 **apps & games**
 - [horyzont](https://github.com/masluny/horyzont) island driving game in Godot with 143k trees, because 142k looked empty
