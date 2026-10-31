@@ -20,6 +20,6 @@
 - [OptiTrain](https://github.com/masluny/OptiTrain) reads Apple Health and tells you if today is a training day or a sofa day
 - [gridatlas](https://github.com/masluny/gridatlas) the whole world offline, cut into ~4 km windows ([try it](https://masluny.github.io/gridatlas/))
 
-### when i actually code
+### a year of commits, as islands
 
-<p align="center"><img src="assets/commit-clock.svg" alt="commits by hour of day"></p>
+<p align="center"><img src="assets/archipelago.svg" width="100%" alt="a year of contributions drawn as an archipelago"></p>

@@ -1,4 +1,4 @@
-name: commit clock
+name: archipelago
 
 on:
   schedule:
@@ -16,12 +16,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python scripts/clock.py
+      - run: python scripts/island.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: commit if changed
         run: |
           git config user.name "pirrot-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/commit-clock.svg
-          git diff --cached --quiet || { git commit -m "redraw commit clock 🦜"; git push; }
+          git add assets/archipelago.svg
+          git diff --cached --quiet || { git commit -m "redraw archipelago 🏝️"; git push; }
