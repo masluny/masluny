@@ -115,7 +115,8 @@ def caption(counts, total, last):
     if dz_len >= 2:
         lines.append(f"Between {dz_start:02d}:00 and {dz_end:02d}:00: zero. Not one, ever.")
     pushed = datetime.fromisoformat(last["pushed_at"].replace("Z", "+00:00")).astimezone(TZ)
-    lines.append(f"Last seen pushing to [{last['name']}]({last['html_url']}) on {pushed:%b %-d at %H:%M}.")
+    lines.append(f'Last seen pushing to <a href="{last["html_url"]}">{last["name"]}</a> '
+                 f"on {pushed:%b %-d at %H:%M}.")
     return "<sub>" + " ".join(lines) + "</sub>"
 
 
